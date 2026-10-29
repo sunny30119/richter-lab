@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>芮氏規模實驗室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* 版面：上方控制列 → 地圖＋說明 → 四張測站卡（各有地震圖）→ 結論對照 */
+:root{
+  --bg:#eef1f3; --paper:#f9fbfc; --ink:#1d2730; --muted:#5d6b77; --line:#c9d2d9;
+  --grid:#dde4ea; --accent:#c8321e; --accent-soft:#f6d9d3; --p:#2462b8; --ok:#2f7d4f;
+  --font-body:"Noto Sans TC",system-ui,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171c; --paper:#1a2128; --ink:#e3e9ee; --muted:#93a1ad; --line:#33404b;
+  --grid:#26313a; --accent:#ff6a52; --accent-soft:#3d221d; --p:#6ea6ff; --ok:#6cc792; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171c; --paper:#1a2128; --ink:#e3e9ee; --muted:#93a1ad; --line:#33404b;
+  --grid:#26313a; --accent:#ff6a52; --accent-soft:#3d221d; --p:#6ea6ff; --ok:#6cc792; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{font-size:clamp(26px,4vw,36px);font-weight:900;margin:0;letter-spacing:.02em;text-wrap:balance}
+h2{font-size:19px;margin:0 0 8px;text-wrap:balance}
+.lede{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px}
+.controls{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center}
+.controls label{font-weight:700}
+.bigM{font-family:var(--font-mono);font-size:30px;font-weight:600;color:var(--accent);min-width:3.2ch;display:inline-block}
+input[type=range]{width:min(320px,70vw);accent-color:var(--accent)}
+button{font:inherit;font-weight:700;border:1px solid var(--accent);background:transparent;color:var(--accent);
+  padding:6px 14px;border-radius:6px;cursor:pointer}
+button:hover{background:var(--accent-soft)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.chk{display:flex;gap:6px;align-items:center;font-weight:500!important}
+.top{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.top{grid-template-columns:1fr}}
+.top svg{width:100%;height:auto;display:block}
+.steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.steps b{color:var(--accent)}
+.formula{font-family:var(--font-mono);background:var(--bg);border-radius:6px;padding:8px 10px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+.stations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.stations{grid-template-columns:1fr}}
+.st h3{margin:0;font-size:16px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.st h3 .tag{font-weight:500;color:var(--muted);font-size:13px}
+.st canvas{width:100%;height:140px;display:block;margin:8px 0;border-radius:4px}
+.calc{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:14px}
+.calc dt{color:var(--muted)}
+.calc dd{margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.calc .res dt,.calc .res dd{color:var(--ink);font-weight:700;border-top:1px solid var(--line);padding-top:4px;margin-top:2px}
+.calc .res dd{color:var(--accent);font-size:17px}
+.int{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:760px){.compare{grid-template-columns:1fr}}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:4.5em minmax(0,1fr) 6.5em;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:14px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar .fill{height:100%;background:var(--muted);border-radius:3px}
+.bar.m .fill{background:var(--accent)}
+.bar span:last-child{font-family:var(--font-mono);text-align:right}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.key{display:flex;gap:16px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.key i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>芮氏規模實驗室</h1>
+    <p class="lede">同一個地震，四個測站各自量一次。看看離得遠的測站，為什麼量到的振幅小很多，算出來的規模卻差不多。</p>
+  </header>
+
+  <section class="panel controls" aria-label="控制">
+    <div><label for="mag">設定地震真正的規模</label><br>
+      <input id="mag" type="range" min="2" max="7" step="0.1" value="5.0">
+      <span class="bigM" id="magOut">5.0</span></div>
+    <button id="reroll" type="button">再來一次（換一組隨機誤差）</button>
+    <label class="chk"><input id="norm" type="checkbox"> 把每張地震圖放大到一樣高（看波形用）</label>
+  </section>
+
+  <section class="top">
+    <div class="panel">
+      <h2>地圖</h2>
+      <svg id="map" viewBox="0 0 320 320" role="img" aria-label="震央與四個測站的位置"></svg>
+      <p class="note">紅星是震央。同心圓間隔 100 km。</p>
+    </div>
+    <div class="panel">
+      <h2>每個測站做的三件事</h2>
+      <ol class="steps">
+        <li><b>找距離：</b>P 波（藍，跑得快）先到，S 波（紅，跑得慢）後到。兩者差幾秒，距離大約就是 <span class="mono">8 × 秒數</span> 公里。</li>
+        <li><b>量振幅：</b>在標準地震儀（伍德–安德森地震儀）的紀錄上，找出最大的擺動幅度 <span class="mono">A</span>（單位 mm）。</li>
+        <li><b>補距離：</b>震波走越遠越弱，所以要加回一個「距離修正」。</li>
+      </ol>
+      <div class="formula">M<sub>L</sub> = log₁₀A + 2.76·log₁₀Δ − 2.48</div>
+      <p class="note">log₁₀ 的意思是「10 的幾次方」。振幅大 10 倍，規模只多 1。<br>這條是芮氏原始距離表的簡化近似，適用於約 10–600 km。</p>
+      <div class="key"><span><i style="background:var(--p)"></i>P 波到達</span><span><i style="background:var(--accent)"></i>S 波到達</span><span>▲ 最大振幅</span></div>
+    </div>
+  </section>
+
+  <section class="stations" id="stations"></section>
+
+  <section class="panel compare">
+    <div>
+      <h2>振幅：差了上百倍</h2>
+      <div class="bars" id="ampBars"></div>
+      <p class="note">長條按真實比例畫。遠的測站幾乎看不到。</p>
+    </div>
+    <div>
+      <h2>算出來的規模：幾乎一樣</h2>
+      <div class="bars" id="magBars"></div>
+      <p class="note" id="avgLine"></p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>規模 vs 震度</h2>
+    <p style="margin:0;max-width:70ch"><b>規模</b>描述地震本身放出多少能量，一個地震只有一個規模，所以各地算出來一樣。<b>震度</b>描述「你這裡搖得多厲害」，離越近越大，所以每個測站卡片上的震度都不一樣。新聞說「規模 6.0、台北震度 3 級」就是這個意思。</p>
+    <p class="note">卡片上的震度是依振幅粗估的示意值，不是氣象署的正式算法。現在大地震多改用「地震矩規模 M<sub>w</sub>」，原理不同，但「一個地震一個數字」的精神一樣。</p>
+  </section>
+</div>
+
+<script>
+const VP = 6, VS = 3.43;                 // km/s；S−P 時間差 × 8 ≈ 距離
+const T_MAX = 120;                       // 地震圖時間軸（秒）
+const STATIONS = [
+  {name:"新竹站", d:30,  ang:-40},
+  {name:"台中站", d:80,  ang:200},
+  {name:"嘉義站", d:150, ang:120},
+  {name:"恆春站", d:300, ang:30}
+];
+const $ = id => document.getElementById(id);
+let seed = 1;
+function rand(){ seed = (seed*16807) % 2147483647; return (seed-1)/2147483646; }
+function gauss(){ return Math.sqrt(-2*Math.log(rand()+1e-9))*Math.cos(2*Math.PI*rand()); }
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const corr = d => 2.76*Math.log10(d) - 2.48;
+
+let runSeed = 7, data = [];
+
+function simulate(){
+  const M = +$("mag").value;
+  seed = runSeed;
+  data = STATIONS.map(s => {
+    const tP = s.d/VP, tS = s.d/VS;
+    const noise = gauss()*0.12;                    // 地質、儀器帶來的小誤差
+    const A = Math.pow(10, M - corr(s.d) + noise); // mm
+    // 產生波形：先 P 再 S，最後縮放到最大值剛好等於 A
+    const N = 1200, w = new Float32Array(N);
+    let ph1 = rand()*6, ph2 = rand()*6;
+    for (let i=0;i<N;i++){
+      const t = i/N*T_MAX; let v = (rand()-.5)*0.01;
+      if (t>tP){ const u=t-tP; v += 0.28*Math.exp(-u/6)*Math.sin(2*Math.PI*1.3*u+ph1)*(0.6+0.4*rand()); }
+      if (t>tS){ const u=t-tS; v += Math.min(1,u/1.2)*Math.exp(-u/(8+s.d/40))*Math.sin(2*Math.PI*0.55*u+ph2)*(0.7+0.3*rand()); }
+      w[i]=v;
+    }
+    let mx=0, mi=0; for (let i=0;i<N;i++){ if (Math.abs(w[i])>mx){mx=Math.abs(w[i]);mi=i;} }
+    for (let i=0;i<N;i++) w[i] = w[i]/mx*A;
+    const sp = tS - tP, dEst = 8*sp;
+    const ML = Math.log10(A) + corr(dEst);
+    const intensity = Math.max(0, Math.min(7, Math.round(1.5*Math.log10(A)+1)));
+    return {...s, tP, tS, A, w, mi, sp, dEst, ML, intensity};
+  });
+  render();
+}
+
+function fmtA(a){ return a>=100 ? a.toFixed(0) : a>=1 ? a.toFixed(1) : a>=0.01 ? a.toFixed(3) : a.toExponential(1); }
+
+function render(){
+  $("magOut").textContent = (+$("mag").value).toFixed(1);
+  drawMap();
+  const wrap = $("stations");
+  if (!wrap.children.length){
+    wrap.innerHTML = STATIONS.map((s,i)=>`
+      <article class="panel st">
+        <h3>${s.name} <span class="tag" id="int${i}"></span></h3>
+        <canvas id="cv${i}" aria-label="${s.name} 地震圖"></canvas>
+        <dl class="calc" id="calc${i}"></dl>
+      </article>`).join("");
+  }
+  const Amax = Math.max(...data.map(d=>d.A));
+  data.forEach((d,i)=>{
+    drawSeis($("cv"+i), d, $("norm").checked ? d.A : Amax);
+    $("int"+i).innerHTML = `<span class="int">震度約 ${d.intensity} 級</span>`;
+    $("calc"+i).innerHTML = `
+      <dt>① S − P 時間差</dt><dd>${d.sp.toFixed(1)} 秒</dd>
+      <dt>　→ 距離 Δ ≈ 8 × ${d.sp.toFixed(1)}</dt><dd>${d.dEst.toFixed(0)} km</dd>
+      <dt>② 最大振幅 A</dt><dd>${fmtA(d.A)} mm</dd>
+      <dt>　log₁₀A</dt><dd>${Math.log10(d.A).toFixed(2)}</dd>
+      <dt>③ 距離修正 2.76·log₁₀Δ − 2.48</dt><dd>+${corr(d.dEst).toFixed(2)}</dd>
+      <div class="res" style="display:contents"><dt>算出規模 M<sub>L</sub></dt><dd>${d.ML.toFixed(1)}</dd></div>`;
+  });
+  // 對照長條
+  $("ampBars").innerHTML = data.map(d=>`
+    <div class="bar"><span>${d.name}</span><div class="track"><div class="fill" style="width:${Math.max(0.3,d.A/Amax*100)}%"></div></div><span>${fmtA(d.A)} mm</span></div>`).join("");
+  $("magBars").innerHTML = data.map(d=>`
+    <div class="bar m"><span>${d.name}</span><div class="track"><div class="fill" style="width:${d.ML/8*100}%"></div></div><span>M ${d.ML.toFixed(1)}</span></div>`).join("");
+  const avg = data.reduce((s,d)=>s+d.ML,0)/data.length;
+  const ratio = Amax/Math.min(...data.map(d=>d.A));
+  $("avgLine").innerHTML = `四站平均 <b class="mono">M ${avg.toFixed(1)}</b>（你設定的是 ${(+$("mag").value).toFixed(1)}）。最近和最遠的振幅差了約 <b class="mono">${ratio>=1000?Math.round(ratio).toLocaleString():ratio.toFixed(0)}</b> 倍，規模卻只差零點幾。氣象單位就是把多個測站平均，公布一個數字。`;
+}
+
+function drawMap(){
+  const svg = $("map"), c = 160, k = 0.45; // 1 km = 0.45 px
+  let h = `<rect width="320" height="320" fill="var(--bg)" rx="6"/>`;
+  [100,200,300].forEach(r=>{ h += `<circle cx="${c}" cy="${c}" r="${r*k}" fill="none" stroke="var(--line)" stroke-dasharray="3 4"/>
+    <text x="${c+3}" y="${c-r*k-3}" font-size="10" fill="var(--muted)">${r} km</text>`; });
+  data.forEach(d=>{
+    const a = d.ang*Math.PI/180, x = c+Math.cos(a)*d.d*k, y = c+Math.sin(a)*d.d*k;
+    h += `<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="var(--muted)" stroke-width="1" opacity=".5"/>
+      <polygon points="${x},${y-7} ${x-6},${y+5} ${x+6},${y+5}" fill="var(--p)"/>
+      <text x="${x}" y="${y+18}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${d.name}</text>
+      <text x="${x}" y="${y+30}" text-anchor="middle" font-size="10" fill="var(--muted)">${d.d} km</text>`;
+  });
+  const s = [];
+  for (let i=0;i<10;i++){ const r = i%2?4:10, a = -Math.PI/2+i*Math.PI/5; s.push((c+Math.cos(a)*r).toFixed(1)+","+(c+Math.sin(a)*r).toFixed(1)); }
+  h += `<polygon points="${s.join(" ")}" fill="var(--accent)"/>`;
+  svg.innerHTML = h;
+}
+
+function drawSeis(cv, d, scaleA){
+  const dpr = window.devicePixelRatio||1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W*dpr; cv.height = H*dpr;
+  const g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle = css("--bg"); g.fillRect(0,0,W,H);
+  const padB = 16, mid = (H-padB)/2, amp = (H-padB)/2-8;
+  g.strokeStyle = css("--grid"); g.lineWidth = 1; g.font = "10px "+css("--font-mono"); g.fillStyle = css("--muted");
+  for (let t=0;t<=T_MAX;t+=20){ const x=t/T_MAX*W; g.beginPath(); g.moveTo(x,0); g.lineTo(x,H-padB); g.stroke(); if(t<T_MAX) g.fillText(t+"s",x+2,H-4); }
+  const mark = (t,col,lab)=>{ const x=t/T_MAX*W; g.strokeStyle=col; g.lineWidth=1.5; g.setLineDash([4,3]);
+    g.beginPath(); g.moveTo(x,0); g.lineTo(x,H-padB); g.stroke(); g.setLineDash([]); g.fillStyle=col; g.font="bold 11px "+css("--font-body"); g.fillText(lab,x+3,12); };
+  mark(d.tP, css("--p"), "P"); mark(d.tS, css("--accent"), "S");
+  // S−P 區間
+  const xP=d.tP/T_MAX*W, xS=d.tS/T_MAX*W;
+  g.strokeStyle=css("--muted"); g.lineWidth=1; g.beginPath(); g.moveTo(xP,20); g.lineTo(xS,20); g.stroke();
+  g.fillStyle=css("--muted"); g.font="10px "+css("--font-mono"); if (xS-xP>34) g.fillText(d.sp.toFixed(1)+"s",xP+(xS-xP)/2-12,30);
+  // 波形
+  g.strokeStyle = css("--ink"); g.lineWidth = 1; g.beginPath();
+  const N = d.w.length;
+  for (let i=0;i<N;i++){ const x=i/N*W, y=mid - Math.max(-1,Math.min(1,d.w[i]/scaleA))*amp; i?g.lineTo(x,y):g.moveTo(x,y); }
+  g.stroke();
+  // 最大振幅標記
+  const xm = d.mi/N*W, ym = mid - Math.sign(d.w[d.mi])*Math.min(1,d.A/scaleA)*amp;
+  g.fillStyle = css("--accent"); g.beginPath(); g.moveTo(xm,ym-(ym<mid?2:-2)); g.lineTo(xm-5,ym+(ym<mid?-10:10)); g.lineTo(xm+5,ym+(ym<mid?-10:10)); g.fill();
+  g.font = "bold 11px "+css("--font-mono"); g.fillText("A="+fmtA(d.A)+"mm", Math.min(xm+8,W-90), Math.max(14,Math.min(H-padB-4, ym+(ym<mid?-2:12))));
+}
+
+$("mag").addEventListener("input", simulate);
+$("reroll").addEventListener("click", ()=>{ runSeed = Math.floor(Math.random()*1e6)+1; simulate(); });
+$("norm").addEventListener("change", render);
+window.addEventListener("resize", render);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+simulate();
+</script>
+</body>
+</html>
